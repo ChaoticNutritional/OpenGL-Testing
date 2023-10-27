@@ -20,6 +20,34 @@ const char* fragmentShaderSource = "#version 330 core\n"
 "	FragColor = vec4(0.8f, 0.3f, 0.02f, 1.0f);\n"
 "}\n\0";
 
+class Point3D {
+public:
+	float x, y, z = 0.0f;
+	Point3D(float cX, float cY, float z = 0.0f) { x = cX, y = cY; };
+	Point3D() { x = 0, y = 0, z = 0; };
+};
+
+class Triangle{
+public:
+	Point3D p1, p2, p3;
+	Triangle(Point3D p1, Point3D p2, Point3D p3)
+	{
+		this->p1 = p1;
+		this->p2 = p2;
+		this->p3 = p3;
+	}
+
+	GLfloat* vertArray(){
+		GLfloat verts[] =
+		{
+			p1.x, p1.y, p1.z,
+			p2.x, p2.y, p2.z,
+			p3.x, p3.y, p3.z
+		};
+		return verts;
+	}
+};
+
 int main()
 {
 	// start

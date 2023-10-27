@@ -7,3 +7,16 @@
 *.db
 .vs/OpenGLYoutube/v16/.suo
 *.db
+x64/Debug/OpenGLYoutube.exe
+x64/Debug/OpenGLYoutube.exe
+x64/Debug/OpenGLYoutube.ilk
+x64/Debug/OpenGLYoutube.pdb
+x64/Debug/OpenGLYoutube.tlog/link.read.1.tlog
+x64/Debug/vc142.idb
+*.pdb
+*.pdb
+*.tlog
+*.ilk
+*.exe
+*.obj
+*.db
