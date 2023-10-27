@@ -2,23 +2,14 @@
 #include<glad/glad.h>
 #include<glfw/glfw3.h>
 
+#include "shaderClass.h"
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
+
 // * NOTE: all OpenGL objects are accessed by References!!
 
-// Vertex shader source code
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
 
-// Fragment shader source code
-const char* fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"	FragColor = vec4(0.8f, 0.3f, 0.02f, 1.0f);\n"
-"}\n\0";
 
 class Point3D {
 public:
@@ -120,87 +111,24 @@ int main()
 	// useful in certain scenario's like: split screen gaming, or rendering only a portion of the window for post-processing effects
 	glViewport(0, 0, 800, 800);
 
-
-	// OpenGL variable version type of a uint ("positive" integer). Sort of like a code number to refer to that shader now
-		// Creates a GLuint variable to reference the vertex shader CREATED BY the glCreateShader function
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-	// GL shader source specifies the shader source to our shader object (GLuint one)
-		// 1st param is the shader object created (GLuint)
-		// 3rd param is a reference to the definition we made at the top of the program
-
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-
-	// must be compiled NOW into machine code so that it can be used by the GPU
-	glCompileShader(vertexShader);
-
-		// as above
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	
-	// as above
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	// as above
-	glCompileShader(fragmentShader);
-
-	// creates a shader program
-	GLuint shaderProgram = glCreateProgram();
-	// similar deal, attaching the vertex and fragment shaders to the shader program
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	
-	// LINKING is different than attaching. Really combines the attached shaders to the program to be executed on the GPU.
-	glLinkProgram(shaderProgram);
-
-	// deletes the shaders from taking up memory since the linking essentially "copies" all the data it needs to from them to put them in one program
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-
+	// initialize a shader program using the default vertex and fragment shaders we've created
+	Shader shaderProgram("default.vert", "default.frag");
 
 	// Creates containers to store the Vertex Array Object and Vertex Buffer Object
-	GLuint VAOs[1], VBOs[1], EBO; // vertex buffer object: stores vertex data
 	//VAO: a blueprint for rendering vertex data
 	//VBO: stores the ACTUAL vertex data
+	//EBO: stores int values corresponding to indices of the VBO array, specifying the order in which they should be processed
+	VAO VAO1;
+	VAO1.Bind();
 
-	// creating placeholders in GPU memory to store the configuration for and actual vertex data, respectively
-	glGenVertexArrays(1, VAOs); // make sure do gen this before the vBo
-	glGenBuffers(1, VBOs);
-	glGenBuffers(1, &EBO);
+	// Creates 
+	VBO VBO1(vertices, sizeof(vertices));
+	EBO EBO1(indexBuffer, sizeof(indexBuffer));
 
-	glBindVertexArray(VAOs[0]); //This means that any subsequent OpenGL calls that deal with vertex data will use the currently bound VAO as their context.
-
-	// tells OpenGL that operations will apply to VBO, and it should be considered as the current GL_ARRAY_BUFFER
-	// preparation to send vertex data to the VBO
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-
-	// actually PUTS the vertex data into the current buffer (which we specified above is also the VBO
-	// 4th parameter specifies how to use the data from the buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); 
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBuffer), indexBuffer, GL_STATIC_DRAW);
-
-	// Configure the Vertex Attribute so that OpenGL knows how to Read the VBO
-		// 1st param: Index of the vertex attribute
-		// 2nd param: specifies how many components per vertex attribute
-		// 3rd param: Specifies that each component is a GL float type
-		// 4th param: Specifies the "stride". Because each vertex in our array has 3 components of type FLOAT, the stride is the total number of bytes that 3 float type variables would occupy
-			// Stride: in memory, how much memory in bytes does our attribute take up, and when should we explect to find the "next" one
-		// 5th param: pointer to the first component of the first attribute. The offset in bytes from the beginning of each vertex in the buffer
-			// (void*)0
-	// this also essentially links our VBO's data INTO our VAO, and HOW OpenGL should do that linking
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-
-	// specifies that we're looking at vertex attribute in idex 0, which is typically VERTEX POSITION
-	glEnableVertexAttribArray(0); // 
-
-	// unbinds the GL_ARRAY_BUFFER so that in case we do any calls later to it, so that we don't mistakenly change our VBO data, which was bound to it before
-	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbinds the VBO
-	glBindVertexArray(0); // unbinds the VAO
-	// ensure this next one is done AFTER unbinding VAO
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbinds the EBO
-	
-	// binding: making a certain object the CURRENT object. So whenever we use a function that would modify this TYPE of object, it modifies the current one
+	VAO1.LinkVBO(VBO1, 0);
+	VAO1.Unbind();
+	VBO1.Unbind();
+	EBO1.Unbind();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -209,10 +137,12 @@ int main()
 
 		// clears the color buffer of the FRAME buffer (sets all pixels in buffer to the CLEAR color we've set above
 		glClear(GL_COLOR_BUFFER_BIT);
-		// specifies our shader program will be used
-		glUseProgram(shaderProgram);
+		
+		// Tell OpenGL which shader program we'll be using
+		shaderProgram.Activate();
+		
 		// loads our VAO which contains the organized version of our VBO
-		glBindVertexArray(VAOs[0]);
+		VAO1.Bind();
 
 		// Renders our vertices
 			// 1st param: specifies primitive to draw between vertices from the array
@@ -230,10 +160,10 @@ int main()
 	}
 
 	// cleanup!
-	glDeleteVertexArrays(1, VAOs);
-	glDeleteBuffers(1, VBOs);
-	glDeleteBuffers(1, &EBO);
-	glDeleteProgram(shaderProgram);
+	VAO1.Delete();
+	VBO1.Delete();
+	EBO1.Delete();
+	shaderProgram.Delete();
 	// end logic
 	glfwDestroyWindow(window);
 	glfwTerminate();
