@@ -65,11 +65,22 @@ int main()
 	{
 		-0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // LEFT : BOTTOM
 		0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // RIGHT : BOTTOM
-		0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f // ORIGIN (mid) : UPPER
+		0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f, // ORIGIN (mid) : UPPER
+		-0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f, // mid between bottom left and upper mid
+		0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f, // mid between bottom right and upper mid
+		0.0f, -0.5f * float(sqrt(3)) / 3 ,0.0f // mid between bottom left and bottom right
 	};
 
-	// DETAILS FOR BELOW FUNCTION
+	GLuint indexBuffer[] =
+	{
+		// index 0, 3, and 5 when drawn in that order creates lower left triangle etc.
+		0, 3, 5, // Lower left triangle 
+		3, 2, 4, // Upper triangle
+		5, 4, 1 // Lower right triangle
+	};
 
+	// Make sure we can create the window at all
+	// DETAILS FOR BELOW FUNCTION
 		// create new GLFWwindow object sized at 800 x 800 pixels with name: as 3rd param
 		// 4th param: specifies which screen will host the window in full screen mode
 			// NULL for none, but can be specified with a "glfwGetMonitors" query (which returns an array of monitors)
@@ -82,7 +93,6 @@ int main()
 		return -1;
 	}
 	// DETAILS FOR BELOW FUNCTION
-
 		// a rendering context is a state where all the OpenGL commands are applied
 		// To draw graphics, you need to have a current rendering context
 		// glfwMakeContextCurrent is called to specify which window's rendering context you want to make current
@@ -115,7 +125,7 @@ int main()
 		// Creates a GLuint variable to reference the vertex shader CREATED BY the glCreateShader function
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
-	// GL shader source specifies the shader source to our shader object
+	// GL shader source specifies the shader source to our shader object (GLuint one)
 		// 1st param is the shader object created (GLuint)
 		// 3rd param is a reference to the definition we made at the top of the program
 
@@ -124,12 +134,12 @@ int main()
 	// must be compiled NOW into machine code so that it can be used by the GPU
 	glCompileShader(vertexShader);
 
-		// 
+		// as above
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	
-	//
+	// as above
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	//
+	// as above
 	glCompileShader(fragmentShader);
 
 	// creates a shader program
@@ -148,13 +158,14 @@ int main()
 
 
 	// Creates containers to store the Vertex Array Object and Vertex Buffer Object
-	GLuint VAOs[1], VBOs[1]; // vertex buffer object: stores vertex data
+	GLuint VAOs[1], VBOs[1], EBO; // vertex buffer object: stores vertex data
 	//VAO: a blueprint for rendering vertex data
 	//VBO: stores the ACTUAL vertex data
 
 	// creating placeholders in GPU memory to store the configuration for and actual vertex data, respectively
 	glGenVertexArrays(1, VAOs); // make sure do gen this before the vBo
 	glGenBuffers(1, VBOs);
+	glGenBuffers(1, &EBO);
 
 	glBindVertexArray(VAOs[0]); //This means that any subsequent OpenGL calls that deal with vertex data will use the currently bound VAO as their context.
 
@@ -165,6 +176,9 @@ int main()
 	// actually PUTS the vertex data into the current buffer (which we specified above is also the VBO
 	// 4th parameter specifies how to use the data from the buffer
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); 
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBuffer), indexBuffer, GL_STATIC_DRAW);
 
 	// Configure the Vertex Attribute so that OpenGL knows how to Read the VBO
 		// 1st param: Index of the vertex attribute
@@ -181,8 +195,10 @@ int main()
 	glEnableVertexAttribArray(0); // 
 
 	// unbinds the GL_ARRAY_BUFFER so that in case we do any calls later to it, so that we don't mistakenly change our VBO data, which was bound to it before
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbinds the VBO
+	glBindVertexArray(0); // unbinds the VAO
+	// ensure this next one is done AFTER unbinding VAO
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbinds the EBO
 	
 	// binding: making a certain object the CURRENT object. So whenever we use a function that would modify this TYPE of object, it modifies the current one
 
@@ -202,7 +218,10 @@ int main()
 			// 1st param: specifies primitive to draw between vertices from the array
 			// 2nd param: specifies the starting index within the bound Vertex Array.
 			// 3rd param: specifies the number of vertices to render in total this way (in our case, the length of our vertices array)
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		//Changing for glDrawElements
+		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+
 
 		// swaps the buffers
 		glfwSwapBuffers(window);
@@ -213,8 +232,8 @@ int main()
 	// cleanup!
 	glDeleteVertexArrays(1, VAOs);
 	glDeleteBuffers(1, VBOs);
+	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(shaderProgram);
-
 	// end logic
 	glfwDestroyWindow(window);
 	glfwTerminate();

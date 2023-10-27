@@ -1,0 +1,15 @@
+Jack's Analogy for Binding and Unbinding VAO, VBO, & EBO:
+
+This analogy treats the OpenGL renderer like it is a sophistocated paintball gun with slots for all sorts of attachments.
+
+The VBO's will be our attachment that has the tube of all of our paintballs that we're going to use.
+
+When we set up the paintball gun to use, because it's very fancy, we have to first equip the attachment that will scan for each paintball from an ammo cartridge and then know how to load it into some pattern that we plan on shooting that this attachment specifies. We have several attachments that can load paintballs into desired patterns, but we attach this one first. (this represents our VAO)
+
+Then we load in an attachment that has our whole assortment of paintballs, almost like a paintball cartridge of paintballs we plan on firing for whatever pattern we plan on specifying with our previous attachment. (This attachment that holds all our paintballs represents our VBO)
+
+Then lastly we can load in an attachment that says which order to shoot out the paintballs we've loaded, so that way we control which ones shoot out first. (This represents our EBO).
+
+If we want to change things, we first have to unload our cartridge of paintballs, because we're not shooting any more of these colors of paintballs. Next we remove the attachment that understands the pattern and scans each paintball.
+
+Lastly we remove the attachment that tells us in what order to shoot each paintball in that pattern.
