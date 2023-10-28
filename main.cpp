@@ -54,12 +54,14 @@ int main()
 	// coordinates of vertices
 	GLfloat vertices[] =
 	{
-		-0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // LEFT : BOTTOM
-		0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // RIGHT : BOTTOM
-		0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f, // ORIGIN (mid) : UPPER
-		-0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f, // mid between bottom left and upper mid
-		0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f, // mid between bottom right and upper mid
-		0.0f, -0.5f * float(sqrt(3)) / 3 ,0.0f // mid between bottom left and bottom right
+		//				COORDINATES					/			COLORS		//
+		//  X					Y				Z	|	R		G		B	|
+		-0.5f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	1.0f, 0.0f, 0.00f,// LEFT : BOTTOM
+		0.5f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	0.0f, 0.00f, 1.0f,// RIGHT : BOTTOM
+		0.0f,	 0.5f * float(sqrt(3)) * 2 / 3, 0.0f,	0.0f, 1.0f, 0.0f,// ORIGIN (mid) : UPPER
+		-0.25f,	 0.5f * float(sqrt(3)) / 6,		0.0f,	0.5f, 0.5f, 0.0f,// mid between bottom left and upper mid
+		0.25f,	 0.5f * float(sqrt(3)) / 6,		0.0f,	0.0f, 0.5f, 0.52f,// mid between bottom right and upper mid
+		0.0f,	-0.5f * float(sqrt(3)) / 3 ,	0.0f,	0.5f, 0.0f, 0.5f,// mid between bottom left and bottom right
 	};
 
 	GLuint indexBuffer[] =
@@ -125,7 +127,9 @@ int main()
 	VBO VBO1(vertices, sizeof(vertices));
 	EBO EBO1(indexBuffer, sizeof(indexBuffer));
 
-	VAO1.LinkVBO(VBO1, 0);
+	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
+	VAO1.LinkAttrib(VBO1, 1,3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
